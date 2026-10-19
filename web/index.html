@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{{.Title}}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            butter: "#F6BD60",
+                            cream: "#F7EDE2",
+                            blush: "#F5CAC3",
+                            sage: "#84A59D",
+                            coral: "#F28482",
+                        },
+                        fontFamily: {
+                            display: ["Anton", "sans-serif"],
+                            sans: ["DM Sans", "sans-serif"],
+                        },
+                    },
+                },
+            };
+        </script>
+
+        <style>
+            body {
+              background: {{.Background}};
+            }
+
+            dialog::backdrop {
+              background: rgba(36, 36, 36, 0.45);
+            }
+
+            dialog {
+              border: 0;
+            }
+
+            .toast {
+              transform: translate(-50%, 120px);
+              opacity: 0;
+              pointer-events: none;
+              transition: transform 250ms ease, opacity 250ms ease;
+            }
+
+            .toast.show {
+              transform: translate(-50%, 0);
+              opacity: 1;
+            }
+        </style>
+    </head>
+
+    <body class="min-h-screen font-sans text-slate-900">
+        <main class="mx-auto w-full max-w-3xl px-3 py-3 sm:px-8 sm:py-12">
+            <!-- Event -->
+            <section class="overflow-hidden">
+                <div class="space-y-7 p-6 sm:p-10">
+                    <!-- Event name -->
+                    <div>
+                        <p
+                            class="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-sage text-center"
+                        >
+                            Bli med på
+                        </p>
+
+                        <h1
+                            class="font-display text-5xl uppercase leading-none tracking-wide sm:text-7xl text-center"
+                        >
+                            {{.Title}}
+                        </h1>
+                    </div>
+
+                    <!-- Event info -->
+                    <div class="grid gap-4 border-2 border-slate-900 p-5">
+                        <div class="rounded-2xl">
+                            <p
+                                class="mb-1 text-xs font-bold uppercase tracking-wider text-gray-500"
+                            >
+                                Når?
+                            </p>
+                            <p class="font-semibold mb-4">
+                                {{.Date}} {{.Time}}
+                            </p>
+
+                            <p
+                                class="mb-1 text-xs font-bold uppercase tracking-wider text-gray-500"
+                            >
+                                Hvor?
+                            </p>
+                            <p class="font-semibold">{{.Location}}</p>
+                        </div>
+                    </div>
+
+                    <!-- Registration -->
+                    <button
+                        type="button"
+                        id="openRegistration"
+                        style="background-color: {{.ButtonColor}}"
+                        class="w-full border-2 border-slate-900 px-6 py-4 text-lg font-bold shadow-[4px_4px_0_#1e293b] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#1e293b] active:translate-y-0 active:shadow-[2px_2px_0_#1e293b]"
+                    >
+                        Meld deg på
+                    </button>
+
+                    <!-- Description -->
+                    <div class="space-y-4">
+                        <p class="leading-relaxed">{{.Description}}</p>
+                        <p class="leading-relaxed font-bold">
+                            {{if .Contact}}Har du spørsmål? Ta kontakt:
+                            {{.Contact}}{{end}}
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Registration modal -->
+        <dialog
+            id="registrationDialog"
+            class="w-[calc(100%-2rem)] max-w-md bg-cream p-0 shadow-2xl rounded"
+        >
+            <form id="registrationForm" method="dialog" class="p-6 sm:p-8">
+                <div class="mb-6">
+                    <h2 class="font-display text-4xl uppercase tracking-wide">
+                        påmelding
+                    </h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label
+                            for="name"
+                            class="mb-1.5 block text-sm font-bold"
+                        >
+                            Navn
+                        </label>
+
+                        <input
+                            id="name"
+                            name="name"
+                            type="text"
+                            autocomplete="name"
+                            required
+                            class="w-full border-2 border-slate-900 bg-white px-4 py-3 outline-none transition focus:ring-4 focus:ring-blush"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            for="email"
+                            class="mb-1.5 block text-sm font-bold"
+                        >
+                            Epost
+                        </label>
+
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            autocomplete="email"
+                            required
+                            class="w-full border-2 border-slate-900 bg-white px-4 py-3 outline-none transition focus:ring-4 focus:ring-blush"
+                        />
+                    </div>
+
+                    <div>
+                        {{range .Questions}}
+                        <div>
+                            <label
+                                for="question-{{.ID}}"
+                                class="mb-1.5 block text-sm font-bold"
+                                >{{.Label}}</label
+                            >
+                            <input
+                                id="question-{{.ID}}"
+                                name="question-{{.ID}}"
+                                data-question="{{.Label}}"
+                                type="text"
+                                {{if
+                                .Required}}required{{end}}
+                                class="w-full border-2 border-slate-900 bg-white px-4 py-3 outline-none transition focus:ring-4 focus:ring-blush"
+                            />
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+
+                <div class="mt-7 grid grid-cols-2 gap-3">
+                    <button
+                        type="button"
+                        id="cancelRegistration"
+                        class="border-2 border-slate-900 bg-white px-4 py-3 font-bold transition hover:bg-slate-100"
+                    >
+                        Avbryt
+                    </button>
+
+                    <button
+                        type="submit"
+                        id="registerButton"
+                        style="background-color: {{.ButtonColor}}"
+                        class="border-2 border-slate-900 px-4 py-3 font-bold shadow-[3px_3px_0_#1e293b] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        Meld deg på
+                    </button>
+                </div>
+            </form>
+        </dialog>
+
+        <!-- Toast -->
+        <div
+            id="toast"
+            role="status"
+            aria-live="polite"
+            class="toast fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm border-2 border-slate-900 bg-white px-5 py-4 text-center font-semibold shadow-[4px_4px_0_#1e293b]"
+        ></div>
+
+        <script>
+            const dialog = document.getElementById("registrationDialog");
+            const form = document.getElementById("registrationForm");
+            const openButton = document.getElementById("openRegistration");
+            const cancelButton = document.getElementById("cancelRegistration");
+            const registerButton = document.getElementById("registerButton");
+            const toast = document.getElementById("toast");
+
+            let toastTimeout;
+
+            openButton.addEventListener("click", () => {
+                dialog.showModal();
+            });
+
+            cancelButton.addEventListener("click", () => {
+                dialog.close();
+                form.reset();
+            });
+
+            dialog.addEventListener("click", (event) => {
+                if (event.target === dialog) {
+                    dialog.close();
+                    form.reset();
+                }
+            });
+
+            function showToast(message, success = true) {
+                clearTimeout(toastTimeout);
+
+                toast.textContent = message;
+                toast.classList.toggle("bg-sage", success);
+                toast.classList.toggle("bg-coral", !success);
+                toast.classList.add("show");
+
+                toastTimeout = setTimeout(() => {
+                    toast.classList.remove("show");
+                }, 3500);
+            }
+
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                const formData = new FormData(form);
+
+                const data = {
+                    name: formData.get("name").trim(),
+                    email: formData.get("email").trim(),
+                    answers: Object.fromEntries(
+                        [...form.querySelectorAll("[data-question]")].map(
+                            (input) => [
+                                input.dataset.question,
+                                input.value.trim(),
+                            ],
+                        ),
+                    ),
+                };
+
+                registerButton.disabled = true;
+                registerButton.textContent = "Laster…";
+                console.log(JSON.stringify(data));
+                try {
+                    const response = await fetch("/register", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Påmelding feilet.");
+                    }
+
+                    dialog.close();
+                    form.reset();
+
+                    showToast("Du er påmeldt!", true);
+                } catch (error) {
+                    showToast("Påmelding feilet. Prøv igjen.", false);
+                } finally {
+                    registerButton.disabled = false;
+                    registerButton.textContent = "Meld deg på";
+                }
+            });
+        </script>
+    </body>
+</html>
+

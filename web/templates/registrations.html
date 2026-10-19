@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8">
+    <p class="mb-4 text-sm text-gray-500">
+       {{len .}} påmeldte
+     </p>
+  <table class="w-full border-collapse text-left">
+    <thead>
+      <tr class="border-b border-gray-300">
+        <th class="px-4 py-2 font-semibold">Navn</th>
+        <th class="px-4 py-2 font-semibold">Epost</th>
+        <th class="px-4 py-2 font-semibold">+1 til</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .}}
+      <tr class="border-b border-gray-200">
+        <td class="px-4 py-2">{{.Name}}</td>
+        <td class="px-4 py-2">{{.Email}}</td>
+        <td class="px-4 py-2">{{.FriendName}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</body>
+</html>

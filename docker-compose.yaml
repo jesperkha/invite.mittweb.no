@@ -1,0 +1,16 @@
+services:
+    postgres:
+        container_name: invite-mittweb-db
+        image: postgres:18
+        volumes:
+            - pgdata:/var/lib/postgresql
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: invite-mittweb-db
+        ports:
+            - "5543:5432"
+
+volumes:
+    pgdata:
+

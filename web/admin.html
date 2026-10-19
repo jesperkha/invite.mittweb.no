@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invite admin</title><script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-[#f7ede2] p-4 font-sans text-slate-900 sm:p-10">
+  {{if not .Authenticated}}
+  <main class="mx-auto mt-20 max-w-sm border-2 border-slate-900 bg-white p-6 shadow-[5px_5px_0_#1e293b]">
+    <h1 class="mb-6 text-3xl font-bold">Invite admin</h1>
+    <form method="post" action="/admin/login" class="space-y-4">
+      <label class="block font-bold">Passord<input name="password" type="password" required autofocus class="mt-1 w-full border-2 border-slate-900 px-3 py-3"></label>
+      <button class="w-full border-2 border-slate-900 bg-[#f28482] px-4 py-3 font-bold">Logg inn</button>
+    </form>
+  </main>
+  {{else}}
+  <main class="mx-auto max-w-5xl space-y-8">
+    <header class="flex items-center justify-between"><h1 class="text-4xl font-bold">Invite admin</h1><form method="post" action="/admin/logout"><button class="underline">Logg ut</button></form></header>
+    <section class="border-2 border-slate-900 bg-white p-5">
+      <h2 class="mb-4 text-2xl font-bold">Invitasjon</h2>
+      <form id="eventForm" class="grid gap-4 sm:grid-cols-2">
+        <label class="font-bold">Tittel<input name="title" required class="mt-1 w-full border-2 border-slate-900 p-2"></label>
+        <label class="font-bold">Dato<input name="date" class="mt-1 w-full border-2 border-slate-900 p-2"></label>
+        <label class="font-bold">Tid<input name="time" class="mt-1 w-full border-2 border-slate-900 p-2"></label>
+        <label class="font-bold">Sted<input name="location" class="mt-1 w-full border-2 border-slate-900 p-2"></label>
+        <label class="font-bold">Kontakt<input name="contact" class="mt-1 w-full border-2 border-slate-900 p-2"></label>
+        <label class="font-bold">Knappfarge<input name="button_color" type="color" class="mt-1 block h-10 w-20"></label>
+        <label class="font-bold">Bakgrunnsfarge<input name="background" type="color" class="mt-1 block h-10 w-20"></label>
+        <label class="font-bold sm:col-span-2">Beskrivelse<textarea name="description" rows="4" class="mt-1 w-full border-2 border-slate-900 p-2"></textarea></label>
+        <div class="sm:col-span-2"><div class="mb-2 flex items-center justify-between"><h3 class="font-bold">Ekstra spørsmål</h3><button type="button" id="addQuestion" class="border-2 border-slate-900 px-3 py-1">Legg til</button></div><div id="questions" class="space-y-2"></div></div>
+        <button class="border-2 border-slate-900 bg-[#84a59d] px-4 py-3 font-bold sm:col-span-2">Lagre invitasjon</button>
+      </form>
+      <p id="eventMessage" class="mt-3"></p>
+    </section>
+    <section class="border-2 border-slate-900 bg-white p-5">
+      <div class="mb-4 flex items-center justify-between"><h2 class="text-2xl font-bold">Påmeldte</h2><button id="removeAll" class="border-2 border-slate-900 bg-[#f28482] px-3 py-2 font-bold">Slett alle</button></div>
+      <div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b-2 border-slate-900"><th class="p-2">Navn</th><th class="p-2">E-post</th><th class="p-2">Svar</th><th></th></tr></thead><tbody id="registrations"></tbody></table></div>
+    </section>
+  </main>
+  <script>
+    const form = document.querySelector("#eventForm"), questions = document.querySelector("#questions");
+    const message = (text) => document.querySelector("#eventMessage").textContent = text;
+    function addQuestion(q = {}) {
+      const row = document.createElement("div"); row.className = "flex gap-2";
+      row.innerHTML = `<input placeholder="Spørsmål" value="${escapeHtml(q.label || "")}" class="question-label min-w-0 flex-1 border-2 border-slate-900 p-2"><label class="flex items-center gap-1"><input type="checkbox" class="question-required" ${q.required ? "checked" : ""}> Påkrevd</label><button type="button" class="remove-question border-2 border-slate-900 px-2">×</button>`;
+      row.querySelector(".remove-question").onclick = () => row.remove(); questions.append(row);
+    }
+    function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    async function load() {
+      const event = await (await fetch("/admin/api/event")).json();
+      for (const [key, value] of Object.entries(event)) if (form.elements[key]) form.elements[key].value = value;
+      questions.innerHTML = ""; event.questions.forEach(addQuestion); loadRegistrations();
+    }
+    form.onsubmit = async (e) => { e.preventDefault(); const data = Object.fromEntries(new FormData(form)); data.questions = [...questions.children].map(row => ({label: row.querySelector(".question-label").value.trim(), required: row.querySelector(".question-required").checked})).filter(q => q.label); const response = await fetch("/admin/api/event", {method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)}); message(response.ok ? "Lagret." : "Kunne ikke lagre."); };
+    async function loadRegistrations() { const rows = await (await fetch("/admin/api/registrations")).json(); document.querySelector("#registrations").innerHTML = rows.map(r => { const answers = typeof r.answers === "string" ? JSON.parse(r.answers || "{}") : (r.answers || {}); return `<tr class="border-b border-slate-200"><td class="p-2">${escapeHtml(r.name)}</td><td class="p-2">${escapeHtml(r.email)}</td><td class="p-2">${Object.entries(answers).map(([k,v]) => `<div><b>${escapeHtml(k)}:</b> ${escapeHtml(v)}</div>`).join("")}</td><td class="p-2"><button data-id="${r.id}" class="delete underline">Slett</button></td></tr>`; }).join(""); document.querySelectorAll(".delete").forEach(b => b.onclick = async () => { await fetch("/admin/api/registrations/" + b.dataset.id, {method:"DELETE"}); loadRegistrations(); }); }
+    document.querySelector("#addQuestion").onclick = () => addQuestion();
+    document.querySelector("#removeAll").onclick = async () => { if (confirm("Slette alle påmeldte?")) { await fetch("/admin/api/registrations", {method:"DELETE"}); loadRegistrations(); } };
+    load();
+  </script>
+  {{end}}
+</body>
+</html>

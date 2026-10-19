@@ -1,0 +1,24 @@
+[[entries]]
+key = "PORT"
+default = ":8080"
+required = false
+
+[[entries]]
+key = "ADMIN_PASSWORD"
+required = true
+default = "password"
+
+[[entries]]
+key = "SESSION_SECRET"
+required = true
+default = "secret"
+
+[[entries]]
+key = "DATABASE_URL"
+default = "postgres://postgres:postgres@localhost:5543/invite-mittweb-db?sslmode=disable"
+required = true
+
+[[entries]]
+key = "ENVIRONMENT"
+default = "development"
+required = false
