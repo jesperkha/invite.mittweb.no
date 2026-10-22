@@ -121,12 +121,10 @@
                 <div class="mb-4 flex items-center justify-between">
                     <div>
                         <h2 class="text-2xl font-bold">Påmeldte</h2>
-                        <p
-                            id="registrationCount"
-                            class="text-sm text-slate-500"
-                        >
-                            0 påmeldte
-                        </p>
+                        <div class="flex gap-3 text-sm text-slate-500">
+                            <p id="registrationCount">0 påmeldte</p>
+                            <p id="totalCount">0 totalt</p>
+                        </div>
                     </div>
                     <button
                         id="removeAll"
@@ -207,8 +205,30 @@
                 const rows = await (
                     await fetch("/admin/api/registrations")
                 ).json();
+                const totalCount = rows.reduce((total, r) => {
+                    const answers =
+                        typeof r.answers === "string"
+                            ? JSON.parse(r.answers || "{}")
+                            : r.answers || {};
+                    return (
+                        total +
+                        Object.values(answers).reduce((answerTotal, value) => {
+                            const numbers = String(value).match(/-?\d+(?:[.,]\d+)?/g) || [];
+                            return (
+                                answerTotal +
+                                numbers.reduce(
+                                    (sum, number) =>
+                                        sum + Number(number.replace(",", ".")),
+                                    0,
+                                )
+                            );
+                        }, 0)
+                    );
+                }, rows.length);
                 document.querySelector("#registrationCount").textContent =
                     `${rows.length} ${rows.length === 1 ? "påmeldt" : "påmeldte"}`;
+                document.querySelector("#totalCount").textContent =
+                    `${totalCount} totalt`;
                 document.querySelector("#registrations").innerHTML = rows
                     .map((r) => {
                         const answers =
@@ -253,4 +273,3 @@
         {{end}}
     </body>
 </html>
-
